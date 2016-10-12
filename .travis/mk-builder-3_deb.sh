@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 
-IMAGE=${DOCKER_CONTAINER:-zultron/mk-builder-2}
+IMAGE=${DOCKER_CONTAINER:-zultron/mk-builder-3}
 SOURCE_DIR=$(readlink -f $(dirname ${0})/..)
 DISTRO=${TAG%-*}
 MARCH=${TAG#*-}
@@ -18,8 +18,14 @@ esac
 
 case ${MARCH} in
     64) BUILD_OPTS="" ;;
-    32) BUILD_OPTS="-a i386 -B" ;;
-    armhf) BUILD_OPTS="-a armhf -B -d" ;;
+    32)
+	SYSROOT=/sysroot/i386
+	BUILD_OPTS="-a i386 -B"
+	;;
+    armhf)
+	SYSROOT=/sysroot/armhf
+	BUILD_OPTS="-a armhf -B -d"
+	;;
     *) echo "Error:  unknown machine arch '${MARCH}'" >&2; exit 1 ;;
 esac
 
@@ -34,4 +40,4 @@ docker run --rm \
     -e USER=travis \
     -v ${HOME}:${HOME} \
     -w ${SOURCE_DIR} \
-    ${IMAGE} dpkg-buildpackage -uc -us ${BUILD_OPTS}
+    ${IMAGE} env SYSROOT=$SYSROOT dpkg-buildpackage -uc -us ${BUILD_OPTS}
