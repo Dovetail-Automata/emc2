@@ -14,6 +14,9 @@ cd ${MACHINEKIT_PATH}/src
      --without-xenomai-kernel \
      --without-rtai-kernel
 make -j${JOBS} ${VERBOSE}
+
+ccache -s
+
 useradd -m -s /bin/bash mk
 chown -R mk:mk ../
 make setuid ${VERBOSE}

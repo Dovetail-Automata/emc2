@@ -84,9 +84,20 @@ export FLAV_OPTS
 
 # build debs
 export DEBUILD_OPTS
-proot-helper /bin/sh -exc 'cd ${MACHINEKIT_PATH}; \
-    ./debian/configure ${FLAV_OPTS} ; \
-    debuild ${DEBUILD_OPTS}'
+
+# check for ccache
+echo $PATH
+PATH=/usr/lib/ccache:$PATH
+
+proot-helper /bin/sh -exc "
+    PATH=/usr/lib/ccache:/usr/sbin:/usr/bin:/sbin:/bin;
+    ccache -s;
+    which gcc;
+    cd ${MACHINEKIT_PATH};
+    ./debian/configure ${FLAV_OPTS} ;
+    debuild ${DEBUILD_OPTS} ;
+    ccache -s;
+"
 
 # copy results
 mkdir ${ROOTFS}/${MACHINEKIT_PATH}/deploy
