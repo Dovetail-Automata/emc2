@@ -26,6 +26,8 @@ before_install:
   # - gem install package_cloud
   # - .travis/check_sftp.sh
   - docker pull "${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}"
+  # Clear ccache stats
+  - ccache -z
 
 env:
   global:
@@ -48,6 +50,8 @@ after_success:
   #
   # This is broken
   #- .travis/upload_pr_pkgs.sh
+  # Show ccache stats
+  - ccache -s
 
 after_failure:
   - .travis/upload_failure.sh

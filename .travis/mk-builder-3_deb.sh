@@ -53,14 +53,13 @@ esac
 export DPKG_ROOT
 export CPPFLAGS="$FLAGS"
 export LDFLAGS="$FLAGS"
-
-! ${MK_PACKAGE_VERBOSE:-false} || export DEBUILD_OPTS+=" -eDH_VERBOSE=1"
+# DH_VERBOSE turns on verbose package builds
+! ${MK_PACKAGE_VERBOSE:-false} || export DH_VERBOSE=1
+# Parallel jobs in `make`
+DEB_BUILD_OPTIONS="parallel=${JOBS}"
 
 # Build source package; requires `dpkg-source`
 ${NOSOURCE} || .travis/deb_update_changelog.sh
-
-# Clear ccache stats
-ccache -z
 
 # Run the Docker container as follows:
 # - Privileged mode (probably not needed in Travis CI)
@@ -79,6 +78,3 @@ docker run --rm \
     -e LDFLAGS \
     -e DEBUILD_OPTS \
     ${IMAGE} dpkg-buildpackage -uc -us ${BUILD_OPTS} ${JOBS+-j$JOBS}
-
-# Show ccache stats
-ccache -s
