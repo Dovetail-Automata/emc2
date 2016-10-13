@@ -59,6 +59,9 @@ export LDFLAGS="$FLAGS"
 # Build source package; requires `dpkg-source`
 ${NOSOURCE} || .travis/deb_update_changelog.sh
 
+# Clear ccache stats
+ccache -z
+
 # Run the Docker container as follows:
 # - Privileged mode (probably not needed in Travis CI)
 # - As Travis CI user/group
@@ -76,3 +79,6 @@ docker run --rm \
     -e LDFLAGS \
     -e DEBUILD_OPTS \
     ${IMAGE} dpkg-buildpackage -uc -us ${BUILD_OPTS} ${JOBS+-j$JOBS}
+
+# Show ccache stats
+ccache -s
