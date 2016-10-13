@@ -25,12 +25,12 @@ before_install:
   # - sudo apt-get install -qq sshpass
   # - gem install package_cloud
   # - .travis/check_sftp.sh
-  - docker pull "${DOCKER_CONTAINER:-zultron/mk-builder-3}"
+  - docker pull "${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}"
 
 env:
   global:
     - JOBS=2
-    - DOCKER_CONTAINER=${DOCKER_CONTAINER:-zultron/mk-builder-3}
+    - DOCKER_CONTAINER=${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}
   matrix:
     # - TAG=jessie-64    CMD=run_tests
     - TAG=jessie-64    CMD=build_deb
