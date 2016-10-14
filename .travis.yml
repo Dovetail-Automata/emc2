@@ -19,16 +19,6 @@ cache: ccache
 services:
   - docker
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq -y lftp
-  # - sudo apt-get install -qq sshpass
-  # - gem install package_cloud
-  # - .travis/check_sftp.sh
-  - docker pull "${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}"
-  # Clear ccache stats
-  - ccache -z
-
 env:
   global:
     - JOBS=2
@@ -39,6 +29,16 @@ env:
     - TAG=jessie-32      CMD=deb
     - TAG=jessie-armhf   CMD=deb
     - TAG=raspbian-armhf CMD=deb
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq -y lftp
+  # - sudo apt-get install -qq sshpass
+  # - gem install package_cloud
+  # - .travis/check_sftp.sh
+  - docker pull "${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}"
+  # Clear ccache stats
+  - ccache -z
 
 script:
   - .travis/docker_build.sh
