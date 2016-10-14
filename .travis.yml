@@ -34,11 +34,11 @@ env:
     - JOBS=2
     - DOCKER_CONTAINER=${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}
   matrix:
-    - TAG=jessie-64    CMD=test
-    - TAG=jessie-64    CMD=deb
-    - TAG=jessie-32    CMD=deb
-    - TAG=jessie-armhf CMD=deb
-    # - TAG=raspbian-armhf CMD=deb
+    - TAG=jessie-64      CMD=test
+    - TAG=jessie-64      CMD=deb
+    - TAG=jessie-32      CMD=deb
+    - TAG=jessie-armhf   CMD=deb
+    - TAG=raspbian-armhf CMD=deb
 
 script:
   - .travis/docker_build.sh
