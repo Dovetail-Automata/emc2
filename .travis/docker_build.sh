@@ -62,7 +62,8 @@ case $CMD in
 		cd ..;
 		. scripts/rip-environment;
 		echo -e 'ANNOUNCE_IPV4=0\nANNOUNCE_IPV6=0' >> \
-		    etc/linuxcnc/machinekit.ini
+		    etc/linuxcnc/machinekit.ini;
+                tail etc/linuxcnc/machinekit.ini;
 		${RUN_TESTS:-true}"
 	)
 	;;
