@@ -22,7 +22,7 @@ services:
 env:
   global:
     - JOBS=2
-    - DOCKER_CONTAINER=${DOCKER_CONTAINER:-zultron/mk-cross-builder}
+    - IMAGE=${IMAGE:-dovetailautomata/mk-cross-builder}
   matrix:
     - TAG=amd64    CMD=test
     - TAG=amd64    CMD=deb
@@ -30,18 +30,21 @@ env:
     - TAG=armhf    CMD=deb
     - TAG=raspbian CMD=deb
 
+addons:
+  apt:
+    packages:
+    - lftp
+    - sshpass
+
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq -y lftp
-  # - sudo apt-get install -qq sshpass
   # - gem install package_cloud
   # - .travis/check_sftp.sh
-  - docker pull "${DOCKER_CONTAINER}:${TAG}"
+  - docker pull "${IMAGE}:${TAG}"
   # Clear ccache stats
   - ccache -z
 
 script:
-  - .travis/docker_build.sh
+  - scripts/build_docker -i $IMAGE -t $TAG -c $CMD
 
 after_success:
   # - .travis/send_binaries.sh
