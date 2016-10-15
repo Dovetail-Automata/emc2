@@ -22,13 +22,13 @@ services:
 env:
   global:
     - JOBS=2
-    - DOCKER_CONTAINER=${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}
+    - DOCKER_CONTAINER=${DOCKER_CONTAINER:-zultron/mk-cross-builder}
   matrix:
-    - TAG=jessie-64      CMD=test
-    - TAG=jessie-64      CMD=deb
-    - TAG=jessie-32      CMD=deb
-    - TAG=jessie-armhf   CMD=deb
-    - TAG=raspbian-armhf CMD=deb
+    - TAG=amd64    CMD=test
+    - TAG=amd64    CMD=deb
+    - TAG=i386     CMD=deb
+    - TAG=armhf    CMD=deb
+    - TAG=raspbian CMD=deb
 
 before_install:
   - sudo apt-get update -qq
@@ -36,7 +36,7 @@ before_install:
   # - sudo apt-get install -qq sshpass
   # - gem install package_cloud
   # - .travis/check_sftp.sh
-  - docker pull "${DOCKER_CONTAINER:-zultron/mk-builder-3:jessie}"
+  - docker pull "${DOCKER_CONTAINER}:${TAG}"
   # Clear ccache stats
   - ccache -z
 
