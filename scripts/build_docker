@@ -39,10 +39,10 @@ case ${TAG} in
 	;;
     i386)                                # Machine arch: i386
 	BUILD_OPTS="-a i386"             # - Set machine arch
-	;&
+	;;&
     armhf|raspbian)                      # Machine arch: armhf
 	BUILD_OPTS="-a armhf"            # - Set machine arch
-	;&
+	;;&
     i386|armhf|raspbian)                 # Cross-compile/foreign arch
 	BUILD_OPTS+=" -B"                # - Only build arch binary packages
 	BUILD_OPTS+=" -d"                # - Root fs missing build deps; force
@@ -93,9 +93,8 @@ case $CMD in
             debian/configure -prxt 8.6;
 
             if ${BUILD_SOURCE}; then
-                # update source package Changelog
-                $SCRIPT_DIR/build_update_deb_changelog
-
+                # update Changelog and build source package
+                $SCRIPT_DIR/build_source_package
             fi
 
             # build binary packages
