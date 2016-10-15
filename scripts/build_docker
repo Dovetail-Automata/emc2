@@ -145,6 +145,6 @@ docker run \
     -u $DUID:$DGID -e USER=${USER} \
     -v ${HOME}:${HOME} -e HOME=${HOME} \
     -v ${BIND_SOURCE_DIR}:${BIND_SOURCE_DIR} -w ${PWD} \
-    -h ${IMAGE//[\/:]/-}:${TAG} \
+    -h ${IMAGE//[\/:]/-}-${TAG} \
     ${IMAGE}:${TAG} \
     "${BUILD_CL[@]}"
