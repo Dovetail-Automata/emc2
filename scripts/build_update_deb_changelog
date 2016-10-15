@@ -24,7 +24,7 @@ BRANCH_NAME="$(git rev-parse --symbolic-full-name HEAD)"
 # Supplied variables for package configuration
 MAJOR_MINOR_VERSION="${MAJOR_MINOR_VERSION:-0.1}"
 TRAVIS_REPO=${TRAVIS_REPO_SLUG:+travis.${TRAVIS_REPO_SLUG/\//.}}
-PKGSOURCE="${PKGSOURCE:-${TRAVIS_REPO:-unk.bldr}}"
+PKGSOURCE="${PKGSOURCE:-${TRAVIS_REPO:-$(hostname)}}"
 DEBIAN_SUITE="${DEBIAN_SUITE:-experimental}"
 REPO_URL="${REPO_URL:-https://github.com/machinekit/machinekit}"
 
