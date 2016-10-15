@@ -104,7 +104,7 @@ case $CMD in
 	;;
     "test") # RIP build and regression tests
 	BUILD_CL=( bash -xec "
-            # Set up build:  `autoconf` and `make`
+            # Set up build:  \`autoconf\` and \`make\`
 	    cd src;
 	    ./autogen.sh;
 	    ./configure --host=\$HOST_MULTIARCH;
