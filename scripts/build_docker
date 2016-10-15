@@ -67,6 +67,9 @@ BIND_SOURCE_DIR="$(readlink -f $PWD/..)"
 # Directory containing this script
 SCRIPT_DIR="$(dirname $0)"
 
+# Make TAG accessible to called programs
+export TAG
+
 ###########################################################
 # Generate command line
 
@@ -93,15 +96,6 @@ case $CMD in
                 # update source package Changelog
                 $SCRIPT_DIR/build_update_deb_changelog
 
-		# create .orig tarball
-		git archive HEAD | \\
-                    bzip2 -z > ../machinekit_${VERSION}.orig.tar.bz2
-
-                # build source package
-		dpkg-source -b .
-
-                # restore old changelog (clean git)
-                mv debian/changelog.old debian/changelog
             fi
 
             # build binary packages
@@ -152,6 +146,7 @@ docker run \
     -u $DUID:$DGID -e USER=${USER} \
     -v ${HOME}:${HOME} -e HOME=${HOME} \
     -v ${BIND_SOURCE_DIR}:${BIND_SOURCE_DIR} -w ${PWD} \
+    -e TAG=${TAG} \
     -h ${IMAGE//[\/:]/-}-${TAG} \
     ${IMAGE}:${TAG} \
     "${BUILD_CL[@]}"

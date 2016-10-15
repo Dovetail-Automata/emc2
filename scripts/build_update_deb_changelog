@@ -20,6 +20,7 @@ SHA1SHORT="$(git log -1 --pretty=format:%h)"
 COMMITTER_NAME="$(git log -1 --pretty=format:%an)"
 COMMITTER_EMAIL="$(git log -1 --pretty=format:%ae)"
 BRANCH_NAME="$(git rev-parse --symbolic-full-name HEAD)"
+BRANCH_NAME="${BRANCH_NAME//*\//}"  # convert / to -
 
 # Supplied variables for package configuration
 MAJOR_MINOR_VERSION="${MAJOR_MINOR_VERSION:-0.1}"
@@ -51,6 +52,26 @@ VERSION="${MAJOR_MINOR_VERSION}.${TIMESTAMP}"
 RELEASE="1${UPSTREAM_ID}.git${SHA1SHORT}~1${DISTRO}"
 
 ###########################################################
+# Debug output
+echo "COMMIT_TIMESTAMP=$COMMIT_TIMESTAMP"
+echo "SHA1SHORT=$SHA1SHORT"
+echo "COMMITTER_NAME=$COMMITTER_NAME"
+echo "COMMITTER_EMAIL=$COMMITTER_EMAIL"
+echo "BRANCH_NAME=$BRANCH_NAME"
+echo "MAJOR_MINOR_VERSION=$MAJOR_MINOR_VERSION"
+echo "TRAVIS_REPO=$TRAVIS_REPO"
+echo "PKGSOURCE=$PKGSOURCE"
+echo "DEBIAN_SUITE=$DEBIAN_SUITE"
+echo "REPO_URL=$REPO_URL"
+echo "TIMESTAMP=$TIMESTAMP"
+echo "PR_OR_BRANCH=$PR_OR_BRANCH"
+echo "COMMIT_URL=$COMMIT_URL"
+echo "UPSTREAM_ID=$UPSTREAM_ID"
+echo "VERSION=$VERSION"
+echo "RELEASE=$RELEASE"
+
+
+###########################################################
 # Generate debian/changelog entry
 #
 # https://www.debian.org/doc/debian-policy/ch-source.html#s-dpkgchangelog
@@ -70,3 +91,17 @@ EOF
 echo "New changelog entry:"
 cat debian/changelog # debug output
 cat debian/changelog.old >> debian/changelog
+
+(
+    set -x # Let user see
+
+    # create .orig tarball
+    git archive HEAD | \
+	bzip2 -z | tee ../machinekit_${VERSION}.orig.tar.bz2 >/dev/null
+
+    # build source package
+    dpkg-source -b .
+)
+
+# restore old changelog (clean git)
+mv debian/changelog.old debian/changelog
