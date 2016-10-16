@@ -37,8 +37,6 @@ addons:
     - sshpass
 
 before_install:
-  # - gem install package_cloud
-  # - .travis/check_sftp.sh
   - docker pull "${IMAGE}:${TAG}"
   # Clear ccache stats
   - ccache -z
@@ -47,16 +45,8 @@ script:
   - scripts/build_docker -i $IMAGE -t $TAG -c $CMD
 
 after_success:
-  # - .travis/send_binaries.sh
-  # - test ${TAG} != "raspbian-armhf" && .travis/upload_packagecloud.sh
+  # Upload packages to packagecloud.io
+  - scripts/build_upload_packagecloud $CMD
   #
-  # This is broken
-  #- .travis/upload_pr_pkgs.sh
   # Show ccache stats
   - ccache -s
-
-after_failure:
-  - .travis/upload_failure.sh
-
-# after_script:
-#   - .travis/send_status.sh
