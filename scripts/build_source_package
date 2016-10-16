@@ -46,10 +46,10 @@ fi
 UPSTREAM_ID=${PKGSOURCE//[-_]/}.${PR_OR_BRANCH//[-_]/}
 
 # Final version
-VERSION="${MAJOR_MINOR_VERSION}.${TIMESTAMP}"
+VERSION="${MAJOR_MINOR_VERSION}.${TIMESTAMP}.git${SHA1SHORT}"
 
 # Final release
-RELEASE="1${UPSTREAM_ID}.git${SHA1SHORT}~1${DISTRO}"
+RELEASE="1${UPSTREAM_ID}~1${DISTRO}"
 
 ###########################################################
 # Debug output
@@ -78,11 +78,15 @@ echo "RELEASE=$RELEASE"
 
 cd ${SOURCE_DIR}
 
-mv debian/changelog debian/changelog.old
+trap "mv -f debian/changelog.orig debian/changelog" 0 1 2 3 9 15 EXIT
+mv debian/changelog debian/changelog.orig
 cat > debian/changelog <<EOF
 machinekit (${VERSION}-${RELEASE}) ${DEBIAN_SUITE}; urgency=low
 
-  * Travis CI rebuild for ${TAG}, ${PR_OR_BRANCH}, commit ${SHA1SHORT}
+  * Travis CI rebuild
+    - TAG ${TAG}
+    - PR/branch ${PR_OR_BRANCH}
+    - Commit ${SHA1SHORT}
     - ${COMMIT_URL}
 
  -- ${COMMITTER_NAME} <${COMMITTER_EMAIL}>  $(date -R)
@@ -90,7 +94,7 @@ machinekit (${VERSION}-${RELEASE}) ${DEBIAN_SUITE}; urgency=low
 EOF
 echo "New changelog entry:"
 cat debian/changelog # debug output
-cat debian/changelog.old >> debian/changelog
+cat debian/changelog.orig >> debian/changelog
 
 (
     set -x # Let user see
@@ -102,6 +106,3 @@ cat debian/changelog.old >> debian/changelog
     # build source package
     dpkg-source -b .
 )
-
-# restore old changelog (clean git)
-mv debian/changelog.old debian/changelog
