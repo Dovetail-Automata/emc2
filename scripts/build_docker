@@ -16,14 +16,14 @@ JOBS=${JOBS:-4}
 BUILD_SOURCE=${BUILD_SOURCE:-true}  # update Changelog & source pkg
 
 # CL arguments
-while getopts c:i:t:n opt; do
+while getopts c:i:t:nh? opt; do
     case "$opt" in
 	c) CMD=$OPTARG ;;
 	i) IMAGE=$OPTARG ;;
 	t) TAG=$OPTARG ;;
 	n) BUILD_SOURCE=false ;;
-	*) echo "Usage:  $0 [ -i DOCKER-IMAGE ] [ -t DOCKER-TAG ]" \
-	    "[ -c ( deb [ -n ] | test | shell ) | COMMAND ARG ... ]" >&2
+	?|h|*) echo "Usage:  $0 [ -i DOCKER-IMAGE ] [ -t DOCKER-TAG ]" \
+	    "[ -c ( deb [ -n ] | test | [ shell ] [ COMMAND ARG ... ] ) ]" >&2
 	    exit 1 ;;
     esac
 done
