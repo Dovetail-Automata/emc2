@@ -10,7 +10,7 @@
 ###########################################################
 # Configuration from environment, CL args and defaults
 CMD=${CMD:-shell}
-IMAGE=${IMAGE:-zultron/mk-cross-builder}
+IMAGE=${IMAGE:-dovetailautomata/mk-cross-builder}
 TAG=${TAG:-amd64}
 JOBS=${JOBS:-4}
 BUILD_SOURCE=${BUILD_SOURCE:-true}  # update Changelog & source pkg
@@ -143,12 +143,14 @@ esac
 set -x  # Show user the command
 
 # Run the Docker container as follows:
-# - Privileged mode (probably not needed in Travis CI)
+# - Remove container after exit
+# - Run interactively with terminal
+# - Add any `DOCKER_EXTRA_OPTS` from above
 # - As Travis CI user/group
-# - Bind-mount home directory for MK source and `~/.ccache`
-# - Start in same directory
-# - Set hostname to $IMAGE:$TAG, replacing / and : with -
-# - Pass build-related environment variables
+# - Bind-mount home and source directories; start in source directory
+# - Pass environment variable `TAG`
+# - Set hostname to $IMAGE:$TAG (replace `/` and `:` with `-`)
+# - Run build command as set above
 docker run \
     --rm -it \
     "${DOCKER_EXTRA_OPTS[@]}" \

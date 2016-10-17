@@ -1,3 +1,27 @@
+# This Travis CI config calls scripts that use the following defaults,
+# which can (and some should) be overridden in the Travis CI repo
+# settings.
+#
+# Package build `build_docker` script:
+# - IMAGE:  dovetailautomata/mk-cross-builder
+#   Docker image to pull for build
+# - MK_PACKAGE_VERBOSE:  false
+#   Build verbosely with `make V=1`
+# - JOBS:  2
+#   Make parallel jobs, `make -j2`
+# - DEBIAN_SUITE:  experimental
+#   Debian package suite
+# - MAJOR_MINOR_VERSION:  0.1
+#   Override Machinekit package base version
+# - PKGSOURCE:  ${TRAVIS_REPO}
+#   Identifier added to package release suggesting package origin
+#
+# Package upload `build_upload_packagecloud` script:
+# - PACKAGECLOUD_USER, PACKAGECLOUD_TOKEN, PACKAGECLOUD_REPO: no defaults
+#   Packagecloud.io user credentials and package repository
+# - DEPLOY_BRANCH: master
+#   Git branch for which to deploy packages
+
 sudo: required
 
 notifications:
@@ -21,8 +45,9 @@ services:
 
 env:
   global:
-    - JOBS=2
     - IMAGE=${IMAGE:-dovetailautomata/mk-cross-builder}
+    - MK_PACKAGE_VERBOSE=${MK_PACKAGE_VERBOSE:-false}
+    - JOBS=${JOBS:-2}
   matrix:
     - TAG=amd64    CMD=test
     - TAG=amd64    CMD=deb
