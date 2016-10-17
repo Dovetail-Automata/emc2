@@ -55,6 +55,9 @@ PACKAGECLOUD_ARCHIVE=${PACKAGECLOUD_USER}/${PACKAGECLOUD_REPO}/debian/${DISTRO}
 # Deploy
 
 if [ "${TAG}" = "amd64" ]; then
-    package_cloud push ${PACKAGECLOUD_ARCHIVE} ../*dsc
+    set -x  # Show user
+    package_cloud push ${PACKAGECLOUD_ARCHIVE} ../*.dsc
+else
+    set -x  # Show user
 fi
-package_cloud push ${PACKAGECLOUD_ARCHIVE} ../*deb
+package_cloud push ${PACKAGECLOUD_ARCHIVE} ../*_$TAG.deb

@@ -37,16 +37,18 @@ addons:
     - sshpass
 
 before_install:
+  # Pull the Docker build image
   - docker pull "${IMAGE}:${TAG}"
   # Clear ccache stats
   - ccache -z
+  # Install the packagecloud gem for pushing packages
+  - gem install package_cloud
 
 script:
   - scripts/build_docker -i $IMAGE -t $TAG -c $CMD
 
 after_success:
   # Upload packages to packagecloud.io
-  - scripts/build_upload_packagecloud $CMD
-  #
+  - scripts/build_upload_packagecloud
   # Show ccache stats
   - ccache -s
