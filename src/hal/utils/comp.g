@@ -459,6 +459,7 @@ static int comp_id;
     print >>f, "    if(__comp_last_inst) __comp_last_inst->_next = inst;"
     print >>f, "    __comp_last_inst = inst;"
     print >>f, "    if(!__comp_first_inst) __comp_first_inst = inst;"
+    print >>f, "    if(!__comp_inst) __comp_inst = inst;"
     print >>f, "    return 0;"
     print >>f, "}"
 
@@ -657,6 +658,8 @@ def build_usr(tempdir, filename, mode, origfilename):
         options.get("extra_compile_args", ""),
         options.get("extra_link_args", ""))
     print >>f, "include %s" % find_modinc()
+    print >>f, "EXTRA_CFLAGS += -I%s" % os.path.abspath(os.path.dirname(origfilename))
+    print >>f, "EXTRA_CFLAGS += -I%s" % os.path.abspath('.')
     f.close()
     result = os.system("cd %s && make -S %s" % (tempdir, binname))
     if result != 0:
@@ -1006,8 +1009,8 @@ def usage(exitval=0):
     print """%(name)s: Build, compile, and install Machinekit HAL components
 
 Usage:
-           %(name)s [--compile -c|--preprocess -p|--document -d|--view-doc -v] compfile...
-    [sudo] %(name)s [--install -i|--install-doc -j] compfile..
+           %(name)s [ --compile (-c) | --preprocess (-p) | --document (-d) | --view-doc (-v) ] compfile...
+    [sudo] %(name)s [ --install (-i) | --install-doc (-j) ] compfile..
            %(name)s --compile --userspace cfile...
     [sudo] %(name)s --install --userspace cfile...
     [sudo] %(name)s --install --userspace pyfile...
@@ -1077,7 +1080,7 @@ def main():
             elif f.endswith(".comp") and mode == VIEWDOC:
                 tempdir = tempfile.mkdtemp()
                 try:
-                    outfile = os.path.join(tempdir, basename + ".asciiidoc")
+                    outfile = os.path.join(tempdir, basename + ".asciidoc")
                     adocument(f, outfile, frontmatter)
                     cmd = "mank -f %s -p %s -s" % (basename, tempdir)
 		    os.system(cmd)

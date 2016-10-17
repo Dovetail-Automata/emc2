@@ -40,61 +40,6 @@ py_val=`$PYTHON -c "dnl
 AS_IF([test "[$]?" -eq 0 && test "x$py_val" != x], [$2], [$3])[]dnl
 ])
 
-# Python module import test
-#
-# adapted from AX_BOOST_PYTHON_MURRAYC
-# http://ftp.gnome.org/pub/GNOME/sources/glom/1.19/
-m4_define([AX_BOOST_PYTHON_EMC],
-[
-AC_LANG_PUSH([C++])
-saved_CPPFLAGS=$CPPFLAGS
-saved_LIBS=$LIBS
-# Note that this requires PYTHON_CPPFLAGS
-# Note that this expects boost/ to be at some top-level such as /usr/include/
-# We couldn't check for anything else anyway because there's no pkg-config file to tell us where it is
-CPPFLAGS="$PYTHON_CPPFLAGS $saved_CPPFLAGS"
-AC_CACHE_CHECK([whether the Boost::Python headers are available],
-               [ac_cv_boost_python],
-               [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <boost/python/module.hpp>
-using namespace boost::python;
-BOOST_PYTHON_MODULE(test) { (void)0; }
-]], [])],
-    [ac_cv_boost_python=yes], [ac_cv_boost_python=no])])
-
-AS_IF([test "x$ac_cv_boost_python" = xyes],
-[
-  BOOST_PYTHON_LIBS=
-  ax_python_lib=boost_python
-  AC_ARG_WITH([boost-python],
-              [AS_HELP_STRING([--with-boost-python],
-                              [specify the boost python shared library to use. For instance, --with-boost-python=boost_python-py25. Defaults to boost-python. If you use this then you should probably set PYTHON too, to avoid using multiple python versions.])],
-  [if test "x$with_boost_python" != xno; then
-    ax_python_lib=$with_boost_python
-    ax_boost_python_lib=boost_python-$with_boost_python
-  fi])
-  AC_MSG_CHECKING([for boost::python shared library])
-  for ax_lib in "$ax_python_lib" "$ax_boost_python_lib" boost_python
-  do
-    # Note that this requires LIBPYTHON from configure.ac
-    LIBS="$saved_LIBS -l$LIBPYTHON -l$ax_lib"
-    AC_LINK_IFELSE(
-      [AC_LANG_PROGRAM([[#include <boost/python.hpp>]], [[boost::python::object test_object;]])],
-      [BOOST_PYTHON_LIBS="-l$ax_lib"; break])
-  done
-  AS_IF([test "x$BOOST_PYTHON_LIBS" != x], [ax_result=$BOOST_PYTHON_LIBS], [ax_result=])
-  AC_MSG_RESULT([$ax_result])
-])
-CPPFLAGS=$saved_CPPFLAGS
-LIBS=$saved_LIBS
-AC_LANG_POP([C++])
-AS_IF([test "x$ac_cv_boost_python" = xyes && test "x$BOOST_PYTHON_LIBS" != x],
-      [AC_DEFINE([HAVE_BOOST_PYTHON], [1],
-                 [define if the Boost::Python headers and library are available])],
-      [AC_MSG_ERROR([[boost::python is required to build $PACKAGE_NAME]])])
-AC_SUBST([BOOST_PYTHON_LIBS])
-])
-
 # Cython Python Bindings generator
 # 0.19.1 is the version currently in wheezy-backports
 AC_PROG_CYTHON(0.19.0)
@@ -137,7 +82,6 @@ AC_SUBST([EMC2VERSION])
 
 AC_PATH_PROG(GREP, grep)
 AC_PATH_PROG(EGREP, egrep)
-AC_PATH_PROG(ARCHCMD, arch)
 
 AC_PROG_CC
 AC_SUBST([CROSS_COMPILING],[$cross_compiling])
@@ -148,6 +92,7 @@ else
     AC_SUBST(CC_FOR_BUILD,$CC)
 fi
 
+AC_PROG_CXX
 AC_PROG_CPP()
 AC_CHECK_TOOL(OBJCOPY, objcopy)
 AC_CHECK_TOOL(LD, ld)
@@ -541,17 +486,6 @@ KSOURCE_LOCATION_HINTS=$(echo \
 #
 # Platforms. set by --with-platform-{pc,beaglebone,chip,socfpga,raspberry,zedboard}
 # see Section 2.3 to enable other platforms, and 2.7 to AC_DEFINE it
-
-ARCHITECTURE=`$ARCHCMD`
-#
-# Architecture. Use output of arch(1).
-#
-# FIXME this will break 32-bit builds on 64-bit systems.  Need an
-# expert to figure out host/target arch, e.g. --host=i686-pc-linux-gnu
-# even when --build=x86_64-pc-linux-gnu
-#
-# This will cause issues on build servers that build for multiple
-# arches
 
 # xenomai equivalent of pkg-config
 XENO_CONFIG=
@@ -1524,11 +1458,12 @@ if test -n "$XENOMAI_THREADS_RTS"; then
     CFLAGS_hold="$CFLAGS"
     CPPFLAGS_hold="$CPPFLAGS"
     LIBS="$LIBS $($XENOMAI_THREADS_RTS --ldflags)"
+    AC_PRUNE_DEFAULT_LDFLAGS(LIBS)
     CFLAGS="$CFLAGS $($XENOMAI_THREADS_RTS --cflags)"
     CPPFLAGS="$CPPFLAGS $($XENOMAI_THREADS_RTS --cflags)"
     AC_CHECK_LIB($XENOMAI_SKIN, rt_task_create,,
         with_xenomai=no; with_xenomai_kernel=no)
-    AC_CHECK_HEADER($XENOMAI_SKIN/task.h,,
+    AC_CHECK_HEADERS($XENOMAI_SKIN/task.h,,
         with_xenomai=no; with_xenomai_kernel=no)
     LIBS="$LIBS_hold"
     CFLAGS="$CFLAGS_hold"
@@ -1540,7 +1475,7 @@ if test "$with_xenomai" != no -o "$with_xenomai_kernel" != no; then
     # Xenomai docs recommend turning off CONFIG_CC_STACKPROTECTOR
     # on all arches but x86_64; this causes missing symbols without
     # this CFLAG
-    if test "$ARCHITECTURE" != x86_64; then
+    if test "$host_cpu" != x86_64; then
         flags="$flags -fno-stack-protector"
     fi
     XENOMAI_THREADS_RTFLAGS="$XENOMAI_THREADS_RTFLAGS $flags"
@@ -1558,6 +1493,7 @@ if test "$with_xenomai" != no -o "$with_xenomai_kernel" != no; then
     XENOMAI_KERNEL_THREADS_KERNEL_MATH_CFLAGS="$flags"
     # ldflags
     flags="$($XENOMAI_THREADS_RTS --ldflags)"
+    AC_PRUNE_DEFAULT_LDFLAGS(flags)
     XENOMAI_THREADS_LDFLAGS="$XENOMAI_THREADS_LDFLAGS $flags"
     XENOMAI_KERNEL_THREADS_LDFLAGS="$XENOMAI_KERNEL_THREADS_LDFLAGS $flags"
 fi
@@ -1856,8 +1792,6 @@ if test "$USE_PORTABLE_PARPORT_IO" = yes; then
    AC_DEFINE(USE_PORTABLE_PARPORT_IO, [], [use ppdev ioctl instead of inb/outb])
 fi
 AC_SUBST(USE_PORTABLE_PARPORT_IO)
-
-AC_SUBST(ARCHITECTURE)
 
 # Platform
 if $TARGET_PLATFORM_PC; then
@@ -2293,8 +2227,10 @@ AC_ARG_ENABLE(gtk,
     [BUILD_GTK=yes])
 
 if test "$BUILD_GTK" = "yes"; then
-    PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0,  [GTK_VER=`pkg-config gtk+-2.0 --modversion`],
+    PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0,
+	[ AC_DEFINE(HAVE_GTK, 1, Use GTK) ],
         [ AC_MSG_ERROR([no gtk+-2.0 found; use --disable-gtk])])
+    AC_PRUNE_DEFAULT_LDFLAGS(GTK_LIBS)
     PKG_CHECK_MODULES(GNOMEPRINT, libgnomeprintui-2.2,
         [
 	    GTK_CFLAGS="$GTK_CFLAGS $GNOMEPRINT_CFLAGS"
@@ -2304,7 +2240,7 @@ if test "$BUILD_GTK" = "yes"; then
 fi
 
 AC_SUBST(HAVE_GNOMEPRINT)
-AC_SUBST(GTK_VER)
+AC_SUBST(HAVE_GTK)
 AC_SUBST(GTK_LIBS)
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GLIB_LIBS)
@@ -2318,7 +2254,6 @@ AC_SUBST(GLIB_CFLAGS)
 ##############################################################################
 
 SPATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
-AC_PROG_CXX
 
 # make this optional - it will likely only result in warnings
 AX_CXX_COMPILE_STDCXX_11(noext,optional)
@@ -2358,24 +2293,6 @@ AC_PATH_PROG(AWK, awk, "none")
 if test $AWK = "none"
 then
     AC_MSG_ERROR([awk not found])
-fi
-
-AC_PATH_PROG(INSMOD, insmod, "none", $SPATH)
-if test $INSMOD = "none"
-then
-    AC_MSG_ERROR([insmod not found])
-fi
-
-AC_PATH_PROG(RMMOD, rmmod, "none", $SPATH)
-if test $RMMOD = "none"
-then
-    AC_MSG_ERROR([rmmod not found])
-fi
-
-AC_PATH_PROG(LSMOD, lsmod, "none", $SPATH)
-if test $LSMOD = "none"
-then
-    AC_MSG_ERROR([lsmod not found])
 fi
 
 AC_PATH_PROG(PIDOF, pidof, "none", $SPATH)
@@ -2779,11 +2696,13 @@ SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
 TCL_CFLAGS="$TCL_INCLUDE_SPEC -DUSE_TCL_STUBS"
 TCL_LIBS="$TCL_STUB_LIB_SPEC"
+AC_PRUNE_DEFAULT_LDFLAGS(TCL_LIBS)
 
 SC_PATH_TKCONFIG
 SC_LOAD_TKCONFIG
 TK_CFLAGS="$TK_INCLUDE_SPEC $TK_XINCLUDES"
 TK_LIBS="$TK_LIBS $TK_LIB_SPEC"
+AC_PRUNE_DEFAULT_LDFLAGS(TK_LIBS)
 
 AC_PATH_PROGS(WISH,[wish${TCL_VERSION} wish], [wish],
      [path="$TCL_EXEC_PREFIX/bin:$PATH"])
@@ -3022,16 +2941,8 @@ if test "$BUILD_PYTHON" = "yes"; then
 	AC_MSG_ERROR([Python missing.  Install it or specify --disable-python to skip the parts of Machinekit that depend on Python])
     fi
 
-    AC_MSG_CHECKING([python version])
-    if ! $PYTHON -c 'import sys;raise SystemExit,sys.hexversion<0x2040000'
-    then
-	AC_MSG_ERROR(Python version too old (2.4 or newer required))
-    fi
-    AC_MSG_RESULT(OK)
-
-    AC_MSG_CHECKING([version of python libraries])
-    LIBPYTHON=`$PYTHON -c 'import distutils.sysconfig; print "python" + distutils.sysconfig.get_config_vars().get("VERSION")'`
-    AC_MSG_RESULT($LIBPYTHON)
+    AX_PYTHON_DEVEL(>= 2.6)
+    AC_PRUNE_DEFAULT_LDFLAGS(PYTHON_LIBS)
 
     AC_MSG_CHECKING([match between tk and Tkinter versions])
 
@@ -3049,35 +2960,9 @@ Install this version and specify --with-tcl and --with-tk if necessary])
     fi
     AC_MSG_RESULT([$PYTHON_TK_VERSION])
 
-    AC_MSG_CHECKING(location of Python header files)
-    INCLUDEPY=`$PYTHON -c 'import distutils.sysconfig; print distutils.sysconfig.get_config_vars().get("INCLUDEPY")'`
-    AC_MSG_RESULT($INCLUDEPY)
-
-    AC_MSG_CHECKING([for Python headers])
-    AS_IF([test "x$PYTHON_CPPFLAGS" = x],
-    [
-	_PYTHON_SYSCONFIG([[get_python_inc()]], [PYTHON_CPPFLAGS="-I$py_val"])
-  	_PYTHON_SYSCONFIG([[get_python_inc(True)]],
-  	[test "x$PYTHON_CPPFLAGS" = "x-I$py_val" || PYTHON_CPPFLAGS="$PYTHON_CPPFLAGS -I$py_val"])
-    ])
-    AC_MSG_RESULT([$PYTHON_CPPFLAGS])
-    AC_SUBST(PYTHON_CPPFLAGS)
-
-    AC_MSG_CHECKING([for Python libraries])
-    AS_IF([test "x$PYTHON_LIBS" = x],
-    [
-	_PYTHON_SYSCONFIG([[get_config_var('LIBS')]], [PYTHON_LIBS=$py_val])
-    ])
-    AC_MSG_RESULT([$PYTHON_LIBS])
-    AC_SUBST(PYTHON_LIBS)
-
     # Get the CFLAGS and LIBS for boost::python.
-    # This does an AC_SUBST() of BOOST_PYTHON_LIBS
-    # For the CFLAGS we must assume that boost is at the top-level, for instance in /usr/include/:
-    AX_BOOST_PYTHON_EMC
-
-    AC_CHECK_HEADER($INCLUDEPY/Python.h,[],
-	[AC_MSG_ERROR([Required header Python.h missing.  Install it, or specify --disable-python to skip the parts of Machinekit that depend on Python])])
+    AX_BOOST_BASE(1.34, , [AC_MSG_ERROR([Boost 1.34.0 or newer required])])
+    AX_BOOST_PYTHON
 
     AC_MSG_CHECKING(for site-package location)
     SITEPY=`$PYTHON -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib(1)'`
@@ -3104,13 +2989,10 @@ Install this version and specify --with-tcl and --with-tk if necessary])
 fi
 
 AC_SUBST([BUILD_PYTHON])
-AC_SUBST([LIBPYTHON])
-AC_SUBST([INCLUDEPY])
 AC_SUBST([SITEPY])
 
 if test "$BUILD_EMCWEB" = yes; then
    # these are needed for the emcweb interface only
-   AX_BOOST_BASE(1.34, , [AC_MSG_ERROR([Boost 1.34.0 or newer required])])
    AX_BOOST_SERIALIZATION()
    AX_BOOST_THREAD()
    AX_BOOST_SYSTEM()
