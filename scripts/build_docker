@@ -85,8 +85,18 @@ case $CMD in
 	;;
     "deb") # Build Debian packages
 	DOCKER_EXTRA_OPTS=(
+	    # Used in dpkg-buildpackage
 	    -e DEB_BUILD_OPTIONS=$DEB_BUILD_OPTIONS
 	    -e DH_VERBOSE=$DH_VERBOSE
+	    # Used in scripts/build_source_package
+	    -e DEBIAN_SUITE=$DEBIAN_SUITE
+	    -e MAJOR_MINOR_VERSION=$MAJOR_MINOR_VERSION
+	    -e PKGSOURCE=$PKGSOURCE
+	    -e REPO_URL=$REPO_URL
+	    -e TRAVIS_BRANCH=$TRAVIS_BRANCH
+	    -e TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
+	    -e TRAVIS_REPO=$TRAVIS_REPO
+	    -e TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG
 	)
 	BUILD_CL=( bash -xec "
             # configure source package
