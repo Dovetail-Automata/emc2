@@ -178,6 +178,7 @@ extern "C" {
     EMCMOT_SET_OFFSET = 61,               /* set tool offsets */
     EMCMOT_SET_MAX_FEED_OVERRIDE = 62,
     EMCMOT_SETUP_ARC_BLENDS = 63,
+    EMCMOT_RAPID_SCALE = 64,	          /* set scale factor for rapids */
     } cmd_code_t;
 
 /* this enum lists the possible results of a command */
@@ -502,6 +503,7 @@ Suggestion: Split this in to an Error and a Status flag register..
 	double backlash;	/* amount of backlash */
 	int home_sequence;      /* Order in homing sequence */
 	emcmot_comp_t comp;	/* leadscrew correction data */
+	double home_index_offset; /* Distance fm. home switch to index */
 
 	/* status info - changes regularly */
 	/* many of these need to be made available to higher levels */
@@ -533,7 +535,6 @@ Suggestion: Split this in to an Error and a Status flag register..
 
 	int on_pos_limit;	/* non-zero if on limit */
 	int on_neg_limit;	/* non-zero if on limit */
-	double home_sw_pos;	/* latched position of home sw */
 	int home_pause_timer;	/* used to delay between homing states */
 	int index_enable;	/* current state of index enable pin */
 
@@ -618,7 +619,8 @@ Suggestion: Split this in to an Error and a Status flag register..
 	int commandNumEcho;	/* echo of input command number */
 	cmd_status_t commandStatus;	/* result of most recent command */
 	/* these are config info, updated when a command changes them */
-	double feed_scale;	/* velocity scale factor for all motion */
+	double feed_scale;	/* velocity scale factor for all motion but rapids */
+	double rapid_scale;	/* velocity scale factor for rapids */
 	double spindle_scale;	/* velocity scale factor for spindle speed */
 	hal_u32_t enables_new;	/* flags for FS, SS, etc */
 		/* the above set is the enables in effect for new moves */

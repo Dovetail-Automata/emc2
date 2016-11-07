@@ -795,6 +795,11 @@ static int export_joint(int num, joint_hal_t * addr)
     if (retval != 0) {
 	return retval;
     }
+    retval = hal_pin_float_newf(HAL_OUT, &(addr->home_index_offset), mot_comp_id,
+				"axis.%d.home-index-offset", num);
+    if (retval != 0) {
+	return retval;
+    }
     /* export joint parameters */ //FIXME-AJ: changing these to joints will break configs.
     retval =
 	hal_pin_float_newf(HAL_OUT, &(addr->coarse_pos_cmd),
@@ -1018,6 +1023,7 @@ static int init_comm_buffers(void)
     emcmotConfig->limitVel = VELOCITY;
     emcmotStatus->acc = ACCELERATION;
     emcmotStatus->feed_scale = 1.0;
+    emcmotStatus->rapid_scale = 1.0;
     emcmotStatus->spindle_scale = 1.0;
     emcmotStatus->net_feed_scale = 1.0;
     /* adaptive feed is off by default, feed override, spindle 
